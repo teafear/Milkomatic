@@ -1,0 +1,5 @@
+name: Milkomatic
+version: 1.0
+main: org.teafear.milkomatic.MilkBucketPlugin
+api-version: 1.16
+description: A plugin that turns cow locations into milk buckets.
