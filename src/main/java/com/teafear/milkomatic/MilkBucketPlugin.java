@@ -2,7 +2,8 @@ package com.teafear.milkomatic;
 
 import org.bukkit.*;
 import org.bukkit.block.*;
-import org.bukkit.entity.*;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Item;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.inventory.*;
@@ -42,46 +43,47 @@ public class MilkBucketPlugin extends JavaPlugin implements Listener {
         Block dispenserBlock = event.getBlock();
         if (!(dispenserBlock.getState() instanceof Dispenser)) return;
         
-        Dispenser dispenser = (Dispenser) dispenserBlock.getState();
-        Inventory inv = dispenser.getInventory();
+        final Dispenser dispenser = (Dispenser) dispenserBlock.getState();
+        final Inventory inv = dispenser.getInventory();
 
-        // Удаление ведра
-        if (!removeBucket(inv)) {
-            return;
-        }
-        dispenser.update(true); // Обновляем инвентарь диспенсера
+        Bukkit.getScheduler().runTask(this, () -> {
+            if (removeBucket(inv)) {
+                dispenser.update(true);
+                
+                BlockFace facing = ((Directional) dispenser.getBlockData()).getFacing();
+                Block targetBlock = dispenserBlock.getRelative(facing);
+                
+                if (targetBlock.getType().isSolid()) {
+                    return;
+                }
 
-        BlockFace facing = ((Directional) dispenser.getBlockData()).getFacing();
-        Block targetBlock = dispenserBlock.getRelative(facing);
-        
-        // Проверка на твёрдый блок и воздух
-        if (targetBlock.getType().isSolid() || targetBlock.getType() != Material.AIR) {
-            return;
-        }
+                Location targetLoc = targetBlock.getLocation().add(0.5, 0.5, 0.5);
+                ItemStack milkBucket = new ItemStack(Material.MILK_BUCKET);
 
-        Location targetLoc = targetBlock.getLocation().add(0.5, 0.5, 0.5);
-        ItemStack milkBucket = new ItemStack(Material.MILK_BUCKET);
+                Item droppedItem = targetLoc.getWorld().dropItem(targetLoc, milkBucket);
+                Vector velocity = new Vector(
+                    facing.getModX() * throwSpeed,
+                    facing.getModY() * throwSpeed + 0.2,
+                    facing.getModZ() * throwSpeed
+                );
+                droppedItem.setVelocity(velocity);
+                droppedItem.setPickupDelay(20);
+                droppedItem.setCanMobPickup(false);
 
-        // Выбрасываем ведро и настраиваем его
-        Item droppedItem = dispenser.getWorld().dropItem(targetLoc, milkBucket);
-        Vector velocity = new Vector(
-            facing.getModX() * throwSpeed,
-            facing.getModY() * throwSpeed + 0.2,
-            facing.getModZ() * throwSpeed
-        );
-        droppedItem.setVelocity(velocity);
-        droppedItem.setPickupDelay(20); // Задержка подбора
-        droppedItem.setCanMobPickup(false);
-
-        if (enableSounds) {
-            targetLoc.getWorld().playSound(targetLoc, Sound.ENTITY_COW_MILK, 1.0f, 1.0f);
-        }
+                if (enableSounds) {
+                    targetLoc.getWorld().playSound(targetLoc, Sound.ENTITY_COW_MILK, 1.0f, 1.0f);
+                }
+            }
+        });
     }
 
     private boolean removeBucket(Inventory inv) {
         for (int i = 0; i < inv.getSize(); i++) {
             ItemStack item = inv.getItem(i);
-            if (item != null && item.getType() == Material.BUCKET) {
+            if (item != null 
+                && item.getType() == Material.BUCKET
+                && !item.containsEnchantment(Enchantment.ARROW_INFINITE)) {
+                
                 if (item.getAmount() > 1) {
                     item.setAmount(item.getAmount() - 1);
                 } else {
