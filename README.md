@@ -38,3 +38,7 @@ settings:
 
 custom-drops:
   LIGHTNING_STRUCK_COW: HONEY_BOTTLE # Мобы после удара молнией
+```
+<a href="https://modrinth.com/plugin/milkomatic/versions">
+  <img src="https://cdn2.steamgriddb.com/grid/54bed33a9a7f84346018192fe26d4357.png" alt="Скачать" width="200" />
+</a>
