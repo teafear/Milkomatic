@@ -1,0 +1,9 @@
+name: Milkomatic
+version: 1.2
+main: com.teafear.milkomatic.MilkBucketPlugin
+api-version: "1.17"  # Указываем только одну версию (мажорную и минорную)
+author: teafear
+commands:
+  milkomatic:
+    description: Перезагрузить конфиг Milkomatic
+    permission: milkomatic.reload
